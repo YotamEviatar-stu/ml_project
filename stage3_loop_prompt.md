@@ -111,9 +111,39 @@ justify it would not be statistically defensible. Instead:
 ## Section — model comparison summary
 
 One table: model × best hyperparameters × mean CV AUC ± std × train AUC ×
-gap. Keep the fitted model objects (or their best params) accessible in
-the notebook's variables, not just printed and discarded — this is what a
-future Part D run will load and score against the Step 0 holdout.
+gap. Keep each `RandomizedSearchCV`'s `.best_estimator_` (already refit on
+the full train-side pool with the winning hyperparameters, since
+`refit=True` is the default) as its own named variable — not just the
+printed best-params text. Part D will call `.predict()`/`.predict_proba()`
+on these directly; do not make it refit from params alone.
+
+## What Part D actually needs from you — do not build it, just leave it ready
+
+Part D (course Part D, this project's Stage 4) is **out of scope for this
+run** — do not build the confusion matrix, metrics, or SHAP analysis
+yourself, and do not add cells for them. But leave the right foundation so
+that whoever runs Part D next doesn't have to re-do or work around
+anything from Stage 3. Concretely, Part D will need, and you should make
+sure exist as clean, named artifacts by the end of this run:
+
+- The Step 0 holdout (`X`/`y`), completely untouched by any fitting or
+  tuning above — this is what the confusion matrix gets built from.
+- Each model's fitted `.best_estimator_` object (per the point above) —
+  Part D scores these against the holdout and picks one for the SHAP
+  deep-dive.
+- `X` (both the train-side pool and the holdout) kept as a `pandas.DataFrame`
+  with real column names all the way through — not converted to a bare
+  numpy array inside a pipeline step. Part D's SHAP plots need to attribute
+  importance to actual column names (e.g. `Origin_Country_PRT`,
+  `has_prior_dropout`), not `feature_47`. If any pipeline step here would
+  silently drop column names (e.g. `StandardScaler` inside a plain
+  `Pipeline`), make sure the DataFrame version survives alongside it (e.g.
+  via `set_output(transform="pandas")` or an equivalent) so Part D isn't
+  stuck reverse-engineering the column mapping.
+
+Do not go further than this — no confusion matrix, no precision/recall,
+no SHAP, no "chosen model" decision. That's Part D's job, done in a
+separate run.
 
 ## Tools/skills to use proactively
 

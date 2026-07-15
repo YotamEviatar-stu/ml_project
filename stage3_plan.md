@@ -59,8 +59,26 @@ params found, train vs. CV AUC gap, bias-variance diagnosis, decision).
 
 One table: model × best hyperparameters × mean CV AUC ± std × train AUC ×
 gap. This is the artifact Part D's evaluation section will build on, so
-keep the fitted model objects (or their best params) accessible, not just
-printed and discarded.
+keep each `RandomizedSearchCV`'s `.best_estimator_` (already refit on the
+full train-side pool via the default `refit=True`) as its own named
+variable — not just the printed best-params text. Part D calls
+`.predict()`/`.predict_proba()` on these directly.
+
+## Out of scope here — Part D foundation only
+
+Part D (confusion matrix, metrics, SHAP, choosing one model for deeper
+analysis) is not built in Stage 3. Stage 3 only needs to leave it a clean
+foundation:
+
+- The Step 0 holdout `X`/`y`, untouched by any fitting/tuning.
+- Each model's fitted `.best_estimator_` (see above).
+- `X` (train-side pool and holdout) kept as a `pandas.DataFrame` with real
+  column names through every pipeline step — not silently converted to a
+  bare numpy array (e.g. by a `StandardScaler` inside a plain `Pipeline`).
+  Part D's SHAP plots need real column names (`Origin_Country_PRT`,
+  `has_prior_dropout`), not `feature_47`.
+
+No confusion matrix, metrics, or SHAP cells belong in Stage 3.
 
 ## Verification
 

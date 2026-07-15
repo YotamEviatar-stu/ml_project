@@ -25,6 +25,12 @@ Both previously-open items are now settled:
    `attended_before` (0 vs. 1+), discarding the sparse ≥2/≥61-distinct
    tails, consistent with `Waiting_List_Days`/`Observers_Count`/
    `Pre_Course_Supports_Tickets`.
+3. **`Registration_Days_Before`/`Theory_Hours` extreme tails** — **left
+   untouched**, reversing an earlier draft that excluded them.
+   `Registration_Days_Before == 629` (n=16) and `Theory_Hours == 41` (n=1)
+   remain in the training data; no row exclusion or capping applied. Noted
+   as a "perhaps revisit" open item at the bottom of the Stage 2 summary,
+   same deferred status Stage 1 originally gave them.
 
 ## Step 1 — traceability table (write before any transform code)
 
@@ -36,7 +42,7 @@ Stage 1 "Decision:" cell — nothing here is a fresh judgment call.
 |---|---|---|
 | `Prev_Course_Dropouts` | informative only 0 vs. 1, n=196 tail too small | binary flag `had_prior_dropout` |
 | `Prev_Course_Attended` | informative only 0 vs. 1+ | binary flag `attended_before` |
-| `Registration_Days_Before` | keep numeric; median fill for 4.2% missing; tail noted, no action | numeric passthrough + median impute |
+| `Registration_Days_Before` | keep numeric; median fill for 4.2% missing; tail noted for Stage 2 review | numeric passthrough + median impute; tail (629, n=16) left untouched, flagged as "perhaps revisit" |
 | `Waiting_List_Days` | keep numeric + add `has_waited` (0 vs. 1+) flag | numeric passthrough + binary flag |
 | `Registration_Changes` | group `0` / `1` / `2+` | 3-level categorical → one-hot |
 | `Pre_Course_Supports_Tickets` | split `0` vs. `1+` | binary flag |
@@ -44,7 +50,7 @@ Stage 1 "Decision:" cell — nothing here is a fresh judgment call.
 | `Students_Count` | recode `9999`→NaN, median-fill (median=0) | numeric passthrough + sentinel recode + median impute |
 | `Observers_Count` | `0` vs. `1+` binary | binary flag |
 | `Practical_Hours` | recode sentinels (`-5`/`-1`/`5000`/`10000`, n=117)→NaN; median fill in Stage 3, no missing-indicator needed | numeric passthrough + sentinel recode |
-| `Theory_Hours` | keep numeric, expect weak signal, flag 41h tail (no action) | numeric passthrough |
+| `Theory_Hours` | keep numeric, expect weak signal, flag 41h tail for Stage 2 review | numeric passthrough; tail (41, n=1) left untouched, flagged as "perhaps revisit" |
 | `Daily_Tuition_Cost` | median fill; drop `5400` outlier value; add `is_zero_cost` flag | numeric passthrough + outlier recode + binary flag |
 | `Physical_Course_Kits` | **drop** — value set after outcome known (leakage) | excluded |
 | `Returning_Client` | keep as-is | numeric/binary passthrough |
@@ -112,23 +118,38 @@ be zero after imputation). This is the artifact Stage 3 consumes.
 One markdown cell narrating the whole pipeline by treatment group, each
 claim backed by the printed output from Step 3 — e.g. "5 columns dropped
 (2 pure identifiers/no-signal, 3 flagged as leaking post-outcome
-information), plus a 9,695-row exclusion for the deterministic
-`Payment_Terms`/`Enrollment_Type` slice; 5 columns collapsed to
-binary presence/threshold flags because Stage 1 found the signal lived
-entirely in the 0-vs-nonzero split; 3 identity columns (`Origin_Country`,
-`Company_ID`, `Agent_ID`) used smoothed target encoding instead of one-hot
-due to cardinality (150+/184/203 raw levels)..." — referencing the Step 1
+information), plus 9,697 rows excluded across two row-level rules
+(the deterministic `Payment_Terms`/`Enrollment_Type` slice and
+`Client_Category` == UNKNOWN — `Registration_Days_Before`/`Theory_Hours`'s
+extreme tails are left untouched, flagged for revisit); 6 columns
+collapsed to binary presence/threshold flags because
+Stage 1 found the signal lived entirely in the 0-vs-nonzero split; 4
+high-cardinality identity/text columns (`Origin_Country`,
+`Requested_Lab_Config`, `Company_ID`, `Agent_ID`) used a "keep the large
+groups (fit on the full 63,464-row train set), fold the rest into `OTHER`"
+one-hot instead of one-hot on every raw value..." — referencing the Step 1
 table rather than repeating each variable's Stage 1 paragraph.
 
 ## Verification
 
 - Rerun notebook top to bottom, no errors.
 - Final `X` has zero nulls, all-numeric dtypes.
-- Row count drops by exactly 9,695 from the Payment_Terms exclusion (Step
-  0.1) and by nothing else — state this explicitly in Step 3's printed
-  output, per the `feature-engineering` skill's outlier-handling rule
-  ("state the rule and the row count it affects").
-- Smoothed-encoding function is confirmed callable as `fit(train)` +
-  `transform(any)` two separate steps, not one inline computation on the
-  full frame — this is what Stage 3 depends on.
+- Row count drops by exactly 9,697 total (9,695 Payment_Terms + 2
+  Client_Category UNKNOWN) — confirmed via the row-exclusion cell's
+  printed per-rule counts and the assembly cell's reconciliation, per the
+  `feature-engineering` skill's outlier-handling rule ("state the rule and
+  the row count it affects"). `Registration_Days_Before`'s 629 tail (n=16)
+  and `Theory_Hours`'s 41 tail (n=1) are intentionally NOT excluded — see
+  the "perhaps revisit" note at the bottom of the Stage 2 summary.
+- Category-membership thresholds (`top_lab_configs`, `top_countries`,
+  `big_companies`, `big_agents`) are computed from the full `df` (all
+  63,464 rows), not `df_model` — a company's/agent's n≥30 reliability
+  bar reflects its full historical volume, independent of the unrelated
+  Payment_Terms row exclusion. Confirmed matching Stage 1's verified
+  counts (16 companies, 76 agents).
+- Given the model is only ever scored against one fixed test file
+  (`Test_Data_No_Target.csv`), no reusable fit/transform pipeline object
+  is needed — Stage 4 just needs to compute these same category lists and
+  medians from `Train_Data.csv` again (not from the test file) when it's
+  time to score.
 - `Test_Data_No_Target.csv` not referenced anywhere in this stage.

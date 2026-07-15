@@ -1,0 +1,3 @@
+notes:
+
+- Stage 2: decided NOT to exclude the two Stage 1 "second look" outlier tails — `Registration_Days_Before == 629` (n=16) and `Theory_Hours == 41` (n=1) are left in the training data untouched. Noted as "perhaps revisit" at the bottom of the Stage 2 summary. Total Stage 2 row exclusions: 9,697 (63,464 → 53,767 rows), from Payment_Terms/Enrollment_Type + Client_Category == UNKNOWN only.

@@ -7,18 +7,34 @@ file tracks build order and what's covered vs. pending.
 
 Stage 2's final feature matrix (all Stage 1/2 decisions applied: cleaned
 categoricals encoded, missing values imputed/flagged, outliers handled)
-must exist as a single numeric `X`/`y` before any cell below runs. Not yet
-assembled in `train.ipynb` as of this plan being written — check the
-notebook before starting.
+must exist as a single numeric `X`/`y` before any cell below runs. ✅ Met —
+`train.ipynb` builds `X`/`y` at the end of the Stage 2 section: (53767,
+156), zero nulls, all-numeric dtypes, row count reconciled.
 
 ## Setup
 
 - Add `xgboost` to `requirements.txt`.
-- `X_train`/`y_train` = full `Train_Data.csv` after Stage 1/2 processing.
-  `Test_Data_No_Target.csv` stays untouched until the very end.
+- **Held-out test split (new, do this first, before anything else below).**
+  Part D needs a confusion matrix + metrics, which require known labels —
+  `Test_Data_No_Target.csv` has none, so it cannot serve that purpose.
+  Carve a stratified train/test split out of `Train_Data.csv`'s `X`/`y`
+  (`train_test_split(..., stratify=y, random_state=...)`) **before** any CV
+  or hyperparameter search runs. Pick the split fraction by reasoning about
+  what's actually in front of you — dataset size (53,767 rows) and the
+  class balance of `Dropped_Course` — and justify the choice in a markdown
+  cell (e.g. "20% holdout = ~10.7k rows, still gives a low-variance test
+  AUC estimate at this N; smaller if the positive class is rare enough that
+  20% would leave too few positive cases in the holdout"). This holdout is
+  never touched again until Part D.
+- `X_train`/`y_train` = the train-side portion of that split only. All CV
+  folds and hyperparameter search below operate on this portion.
+  `Test_Data_No_Target.csv` separately stays untouched until Stage 4 proper
+  (final predictions on the ungraded file) — it is unrelated to the Part D
+  holdout above.
 - One shared `StratifiedKFold(n_splits=5, shuffle=True, random_state=...)`
-  object reused across all three models' `RandomizedSearchCV` calls, so CV
-  AUCs are comparable across models.
+  object, built on the train-side portion only, reused across all three
+  models' `RandomizedSearchCV` calls, so CV AUCs are comparable across
+  models.
 
 ## Model build order
 
@@ -50,10 +66,21 @@ printed and discarded.
 
 - Run notebook top to bottom; every model cell executes without error and
   prints train AUC, mean±std CV AUC, and best hyperparameters.
+- Confirm the Part D holdout split happens first, before any CV or search
+  cell, and that no model-fitting or tuning cell below it ever reads the
+  holdout rows.
 - Confirm no cell reads `Test_Data_No_Target.csv` before the final summary
   section.
-- Confirm any target-encoded Stage 2 feature is inside the CV
-  pipeline/`ColumnTransformer`, not precomputed once on the full training
-  set (see `model-training` skill's leakage guardrails section) — spot
-  check by verifying the encoder's `fit` is called from within
-  `cross_val_score`/`RandomizedSearchCV`, not before it.
+- No target-encoded features exist in Stage 2's `X` (the original plan for
+  smoothed target encoding was replaced with count-based top-N/`OTHER`
+  thresholding on `Origin_Country`/`Company_ID`/`Agent_ID`/
+  `Requested_Lab_Config`, which never reads `Dropped_Course`) — so there is
+  no CV-fold-refitting requirement to check here.
+- AUC values get read against the standard interpretation scale (Hosmer &
+  Lemeshow): 0.5 none, 0.6–0.7 poor, 0.7–0.8 acceptable, 0.8–0.9 excellent,
+  0.9–1.0 outstanding — used as an interpretive anchor and as a leakage
+  trip-wire (>0.90 on this kind of tabular business data warrants a
+  leakage re-check, not an uncritical win), not as a hard pass/fail target.
+  Random Forest and XGBoost should each beat the Logistic Regression
+  baseline's CV AUC by a real margin, not just land in a higher bucket by
+  chance.

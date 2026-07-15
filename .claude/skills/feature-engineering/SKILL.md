@@ -119,16 +119,31 @@ reading the cell's printed output alone, without re-deriving anything.
 
 ### Interpretation write-up style
 
-Structure each interpretation cell as **one bullet per plot, in the
-order the plots appear in the code cell above it**, each bullet
-labeled with which plot it's reading from (e.g. "**Histogram —
-right-skewed distribution.**"). Follow with a **Decision** paragraph
-written in plain, first-person ("we") conversational sentences — not
-a dense, telegraphic list of clauses. Explain *why* each decision
-follows from the finding above it, the way you'd talk a colleague
-through it out loud, not like a compressed spec line.
+Keep bullets short and clipped — one distinct fact per bullet (raw→cleaned
+category count, dominant-group comparison, missingness, etc.), not a single
+dense sentence bundling percentage + n + comparison together. Don't force a
+strict "one bullet per plot" mapping — split a plot's findings across
+multiple short bullets if that reads clearer than one long one. Follow with
+a short **Decision** — plain statement of the encoding/bucketing choice. If
+a cleaner alternative is still open and not yet decided, say so plainly
+("perhaps revisit and change to N buckets") rather than writing fully
+committed prose for a decision that isn't actually final.
 
-Verified example (`Registration_Days_Before`), the target shape:
+Verified example (`Enrollment_Type`), the target shape:
+
+> 1. 298 raw values - actual 5 distinct categories.
+> 2. 2 major categories - `GENERAL ADMISSION` (71.2%), `AFFILIATED ADMISSION`
+>    (23.7%) together compile 95% of rows. Remaining three differ in drop rate.
+> 3. We have 1% of rows with missing values, but drop rate is very close to
+>    baseline.
+>
+> **Decision:** one hot encode all 5 categories. perhaps revisit and change
+> to 3 categories - GENERAL, AFFILIATED, OTHER.
+
+Older example (`Registration_Days_Before`) kept for reference on plot-labeling —
+note the fuller sentences here are heavier than current preference, but the
+"label which plot each bullet reads from" habit is still useful when a cell
+has multiple plots:
 
 > 1. **Histogram — right-skewed distribution.** Mean (102.9) sits well
 >    above the median (65)... median is the trustworthy summary, not mean.
@@ -136,14 +151,6 @@ Verified example (`Registration_Days_Before`), the target shape:
 >    further in advance... a longer gap goes with a higher chance of dropping.
 > 3. **Missingness bar chart.** Their drop rate sits right on the
 >    baseline... missingness itself carries no signal (MCAR-like).
->
-> **Decision:** we're keeping this one as a numeric predictor — the
-> stayed-vs-dropped gap is real, not noise. When we describe it later,
-> we'll use the median rather than the mean, since the skew makes the
-> mean misleading. The 629-day outlier is worth a second look in Stage
-> 2, but nothing to act on yet. And since missing values don't line up
-> with the target at all, a plain median fill in Stage 3 will do — no
-> need to treat it as its own category.
 
 4. **Does it correlate with other features?** Feeds the Section 2
    correlation matrix (Spearman for numeric×numeric, Cramér's V for

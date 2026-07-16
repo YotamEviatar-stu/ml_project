@@ -7,3 +7,4 @@ ipykernel
 ydata-profiling
 ipywidgets
 xgboost
+shap

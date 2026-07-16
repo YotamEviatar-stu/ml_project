@@ -1,3 +1,15 @@
 notes:
 
 - Stage 2: decided NOT to exclude the two Stage 1 "second look" outlier tails — `Registration_Days_Before == 629` (n=16) and `Theory_Hours == 41` (n=1) are left in the training data untouched. Noted as "perhaps revisit" at the bottom of the Stage 2 summary. Total Stage 2 row exclusions: 9,697 (63,464 → 53,767 rows), from Payment_Terms/Enrollment_Type + Client_Category == UNKNOWN only.
+
+
+Bullet 1 — Logistic Regression
+We already know Logistic Regression's studied-score and quiz-score were basically identical (0.857 vs 0.854). That tells us it isn't cheating by memorizing — there's no "variance" problem (variance = the model swings wildly between what it saw and what it hasn't). But being that consistent is itself a small warning sign: it might be too simple to notice everything worth noticing. That's what "mild bias" means here — bias = the model is systematically missing real patterns because it's too rigid, in this case because it can only draw one fairly straight dividing line, and it can't represent things like "this specific combination of country + company + agent matters" the way the tree models can.
+
+Bullet 2 — Random Forest and XGBoost
+Both tree models' studied-scores were notably higher than their quiz-scores (0.045 and 0.057 point gaps). The question this bullet answers is: is that gap a sign the model is unreliable, or just an expected side-effect of it being more powerful? The check used is comparing the gap to how much the quiz-score naturally wobbles between different quiz groupings (≤0.003). Since both gaps (0.045, 0.057) are way bigger than that wobble, the gap is real, not random noise — but it's also not spiraling out of control, it's the same size no matter how the quiz-groups get reshuffled. That combination — "real, but stable" — is what "absorbed variance, not runaway overfit" is saying: yes, some memorizing is happening, but it's a known, bounded amount, not a model that's fallen apart.
+
+Bullet 3 — XGBoost's extra check
+This is a second, independent test built specifically for XGBoost. Instead of trusting the quiz-score alone, a separate run kept adding trees one at a time and watched a validation slice after each one — and told it to stop the moment adding more trees stopped helping. It stopped at tree #1,132 (it was allowed up to 2,000), and its score at that stopping point (0.930) landed on the exact same number as the 5-quiz-group average. That agreement between two completely separate ways of checking the model is the strongest evidence in the whole write-up that 0.930 is a real, honest number — not something that only looks good because of how the quiz-groups happened to be split.
+
+As one process, in order: first we checked "is the gap even real or just noise" (bullet 2), then for the strongest model specifically, we ran a second, independent check to make sure the number itself holds up (bullet 3) — two different ways of asking the same question, "can we trust this score," from two different angles.

@@ -32,12 +32,10 @@ Recall was weighted more heavily than raw accuracy in model selection: a missed 
 
 **SHAP.** Top global drivers: `Origin_Country = PRT` (Portugal), `had_prior_dropout` (drop rate nearly triples after one prior dropout, corroborating the Part A finding), open support tickets, specific agent groups, and lead/booking time. A secondary check found `Origin_Country = PRT` is entangled with `Client_Category` (PRT students are 66% Big Tech/Traditional IT vs. 66% SaaS for non-PRT) — the model may be partly using country as a proxy for industry.
 
-**Submission.** XGBoost was refit on the full labeled pool (train + holdout, 53,767 rows) with Part C's tuned hyperparameters, then scored on `Test_Data_No_Target.csv` through the identical fitted-on-train-only pipeline (medians, top-N category lists, no recomputation on test data). Output: `Group_46_Submission.csv`, 15,866 rows, `Client_ID` + `Drop_Probability`, all sanity checks (uniqueness, no NaNs, range [0,1]) passed.
 
 ## Conclusions & what would improve the model further
 
 - The central signal is real and interaction-driven, not a single leaked column: the linear baseline already reaches 0.854 AUC, and the ~0.08 lift from tree models reflects genuine feature interactions.
 - Recall is the binding constraint for business value (8.1% of dropouts still missed) — worth revisiting the 0.5 threshold as a tunable business decision (Part D, Section 2) rather than a fixed default.
 - The `Origin_Country`/`Client_Category` entanglement suggests an interaction feature or a fairness/robustness check before deployment, so the model isn't silently using nationality as a proxy.
-- Two long right-tails (`Registration_Days_Before` max 629 days, `Theory_Hours` max 41h) were deliberately left untouched pending review — worth revisiting with more data to confirm they aren't just noise.
-- Probability calibration (Platt/isotonic) was scoped but not built, since the reliability curve didn't show meaningful miscalibration — worth re-checking if the model is deployed for direct probability-threshold decisions rather than ranking.
+

@@ -9,7 +9,7 @@ Two stages, in order. Stage 2 rules assume Stage 1 already established,
 per variable: is it dirty, what's its missingness mechanism, does it
 correlate with `Dropped_Course`, does it correlate with other features.
 Don't jump to encoding/derivation for a variable that hasn't had its
-Stage 1 pass yet — check `train.ipynb` and `stage1_plan.md` first.
+Stage 1 pass yet — check `train.ipynb` and `Part_A_plan.md` first.
 
 **Unit of a row: one row = one order (a group booking for a course),
 not one individual.** `Professionals_Count`/`Students_Count`/
@@ -280,6 +280,6 @@ leaks target information.
 
 ## Reference
 
-`stage1_plan.md` — full variable priority order and what's covered vs.
+`Part_A_plan.md` — full variable priority order and what's covered vs.
 pending. `train.ipynb` — the actual EDA/imputation notebook this
 skill's examples are drawn from.

@@ -9,10 +9,10 @@ engineer with visible reasoning at every major step, not black-box output.
 
 ## Before writing any code
 
-Read, in full: `stage3_plan.md`, `.claude/skills/model-training/SKILL.md`,
+Read, in full: `Part_C_plan.md`, `.claude/skills/model-training/SKILL.md`,
 `CLAUDE.md`. Skim `.claude/skills/feature-engineering/SKILL.md` if you need
 to confirm how a Stage 2 column was built. Do not start coding until
-you've read `stage3_plan.md` end to end — it has just been updated with a
+you've read `Part_C_plan.md` end to end — it has just been updated with a
 held-out test split requirement that did not exist in earlier drafts of
 this plan; make sure you're working from the current version on disk, not
 from memory of an older version.

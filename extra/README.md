@@ -14,4 +14,4 @@ pip install -r requirements.txt
 
 Open `train.ipynb` in VS Code and select the `.venv` interpreter as the kernel (top-right "Select Kernel").
 
-See `stage1_plan.md` for the notebook structure and variable priority order.
+See `Part_A_plan.md` for the notebook structure and variable priority order.

@@ -219,8 +219,8 @@ def evaluate(X_tr, y_tr, X_val, y_val):
 
 
 def main():
-    df = add_clean_columns(pd.read_csv("Train_Data.csv"))
-    test_df = add_clean_columns(pd.read_csv("Test_Data_No_Target.csv").assign(**{TARGET: np.nan}))
+    df = add_clean_columns(pd.read_csv("extra/Train_Data.csv"))
+    test_df = add_clean_columns(pd.read_csv("to_submit/Test_Data_No_Target.csv").assign(**{TARGET: np.nan}))
 
     vocabs = build_vocabularies(df)
 

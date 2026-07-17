@@ -6,7 +6,7 @@ Project-specific guidance for Claude Code when working in this repo (Nova Academ
 
 This is coursework-style analysis, but treat it with the same rigor as academic research: every analytical choice (bucketing thresholds, missing-value strategy, encoding choice) must be statistically defensible, not just visually convincing. Report the test statistic and p-value alongside any visual summary, and don't invent theoretical code-review issues (e.g. "hardcoded sample rate") that don't actually apply to this dataset.
 
-See `.claude/skills/feature-engineering/SKILL.md` for the full methodology (variable glossary, dirty-categorical patterns, missing-value framework, encoding decision tree, interpretation write-up style) and `stage1_plan.md` for the variable priority queue. Read both before making changes to `train.ipynb`.
+See `.claude/skills/feature-engineering/SKILL.md` for the full methodology (variable glossary, dirty-categorical patterns, missing-value framework, encoding decision tree, interpretation write-up style) and `Part_A_plan.md` for the variable priority queue. Read both before making changes to `train.ipynb`.
 
 ## Code comments & docstrings (WIP phase)
 

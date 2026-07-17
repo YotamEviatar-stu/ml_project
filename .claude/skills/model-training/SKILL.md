@@ -133,6 +133,6 @@ runs. No other new dependency needed (`RandomizedSearchCV` and
 
 ## Reference
 
-`stage3_plan.md` — model build order, search spaces, and verification
+`Part_C_plan.md` — model build order, search spaces, and verification
 checklist. `feature-engineering` skill — Stage 1/2 methodology this stage's
 feature matrix depends on.

@@ -31,55 +31,28 @@ once the approach settles, same as Stages 1–3 did.
 - Markdown interpretation cell: metric meanings in context, model
   comparison, which model looks best and why (feeds Section 3).
 
-## Section 2 — threshold check
-
-- 0.5 is the default cut for the confusion matrix above, but given the
-  recall-matters-more asymmetry from Section 1, briefly check the
-  precision-recall tradeoff (PR curve or a couple of alternate thresholds)
-  for the model that ends up chosen in Section 3. This doesn't change the
-  submission file (that wants raw probabilities, not hard labels) — it's
-  only to justify whether 0.5 was a reasonable choice for the confusion
-  matrix, or worth flagging as a tunable business decision.
-
-## Section 3 — choose one model for the deep-dive
+## Section 2 — choose one model for the deep-dive
 
 - Decision must cite the **holdout** table from Section 1 (independent
   evidence), not just re-quote Part C's CV-AUC ranking. Expect XGBoost to
   hold up (CV AUC 0.930 vs RF 0.922 vs LR 0.854 in Part C) but confirm
   before locking it in — that's the whole point of having a holdout.
 
-## Section 4 — deep-dive: where does the chosen model struggle?
-
-- Confidence = `max(p, 1-p)` from `predict_proba` on `X_holdout`. Bucket
-  into low/medium/high confidence (e.g. <0.6, 0.6–0.8, >0.8) and report
-  accuracy per bucket — this directly answers the assignment's prompt
-  ("scenarios where the model provides a lower confidence level").
-- Compare feature distributions (or a cross-tab against key categoricals
-  like `Client_Category`, `Payment_Terms`) between the low- and
-  high-confidence groups to characterize *which* clients get uncertain
-  predictions.
-- Reliability/calibration curve (predicted-probability bucket vs. observed
-  dropout rate) — the correct tool for "is the model's confidence
-  trustworthy," and directly relevant since the final submission delivers
-  raw probabilities, not hard labels.
-
-## Section 5 — SHAP
+## Section 3 — SHAP
 
 - `shap.TreeExplainer` for RF/XGBoost (or `LinearExplainer` if LR is somehow
-  chosen) on the model from Section 3. Background = a sample of `X_train`;
+  chosen) on the model from Section 2. Background = a sample of `X_train`;
   explain a capped subsample of `X_holdout` (state the cap and why, e.g.
   2,000 rows for runtime — not a silent truncation).
 - Global: beeswarm + mean |SHAP| bar plot → top drivers of dropout.
-- Local: waterfall/force plots for a few representative cases pulled from
-  Section 4's buckets — a high-confidence correct call, a low-confidence
-  call, and a misclassified case (FP or FN) from Section 1's confusion
-  matrix.
+- Local: waterfall/force plots for a couple of misclassified cases (FP or
+  FN) pulled from Section 1's confusion matrix.
 - Interpretation cell: do the SHAP top drivers match what Stage 1/2 EDA
   already flagged as strong single-variable signals (e.g. `had_prior_dropout`,
   `Payment_Terms`)? Corroboration is expected; a mismatch is worth flagging,
   not smoothing over.
 
-## Section 6 — final submission file
+## Section 4 — final submission file
 
 **The real gap to close first:** Stage 2's transforms (medians for
 imputation, top-N category lists for one-hot encoding, the
@@ -117,9 +90,7 @@ produce a mismatched column set and train/test skew.
 ## Out of scope / open questions
 
 - Group number for the output filename.
-- Probability calibration (Platt/isotonic) — only worth building if Section
-  4's reliability curve shows the chosen model is meaningfully miscalibrated;
-  not built preemptively.
+- Probability calibration (Platt/isotonic) — not built.
 
 ## Verification
 

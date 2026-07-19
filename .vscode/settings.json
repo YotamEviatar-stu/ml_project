@@ -1,5 +1,5 @@
 {
-    "python.defaultInterpreterPath": "/Users/yotameviatar/vs_code/.venv/bin/python3",
+    "python.defaultInterpreterPath": "/Users/yotameviatar/vs_code/ml/.venv/bin/python3",
     "python.terminal.activateEnvironment": true,
     "jupyter.jupyterServerType": "local",
     "jupyter.kernels.excludePythonEnvironments": [
